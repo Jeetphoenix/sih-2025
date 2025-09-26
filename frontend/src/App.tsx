@@ -29,7 +29,12 @@ import VetAlert from './pages/VetAlert'
 function App() {
   return (
     <LanguageProvider>
-      <Router>
+      <Router
+        future={{
+          v7_startTransition: true,
+          v7_relativeSplatPath: true,
+        }}
+      >
         <div className='min-h-screen bg-gradient-to-br from-green-50 to-blue-50'>
           <Routes>
   <Route path='/' element={<LandingPage />} />
