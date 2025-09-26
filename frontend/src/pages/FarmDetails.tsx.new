@@ -1,0 +1,421 @@
+import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
+import { Edit, Trash2, Settings, ShieldAlert, ArrowLeft, MapPin, Star } from 'lucide-react';
+import { useLanguage } from '../contexts/LanguageContext';
+
+interface FarmDetails {
+  id: string;
+  name: string;
+  location: string;
+  type: string;
+  capacity: number;
+  rating: number;
+  status: 'Healthy' | 'Caution';
+  description: string;
+  established: string;
+  totalWorkers: number;
+  animalsVaccinated: boolean;
+  contact: {
+    phone: string;
+    email: string;
+    website: string;
+  };
+  facilities: string[];
+  certifications: string[];
+  photos: string[];
+}
+
+// Mock data for farm details
+const FARM_DETAILS: Record<string, FarmDetails> = {
+  '1': {
+    id: '1',
+    name: 'Green Valley Poultry Farm',
+    location: 'Agriculture City, State',
+    type: 'Layer Chickens',
+    capacity: 1500,
+    rating: 4.8,
+    status: 'Healthy',
+    description: 'A leading poultry farm specializing in free-range egg production with a focus on animal welfare and sustainable farming practices.',
+    established: '2010',
+    totalWorkers: 12,
+    animalsVaccinated: true,
+    contact: {
+      phone: '+1 (555) 123-4567',
+      email: 'info@greenvalleyfarm.com',
+      website: 'www.greenvalleyfarm.com'
+    },
+    facilities: [
+      'Automated feeding system',
+      'Climate-controlled housing',
+      'Biosecurity measures'
+    ],
+    certifications: [
+      'Organic Certification',
+      'Animal Welfare Approved'
+    ],
+    photos: [
+      'https://i.ibb.co/0nQxYJv/photo-1.jpg',
+      'https://i.ibb.co/8XJvJXQ/photo-2.jpg'
+    ]
+  }
+};
+
+const FarmDetails: React.FC = () => {
+  const { id } = useParams<{ id: string }>();
+  const [searchParams] = useSearchParams();
+  const isAdmin = searchParams.get('admin') === 'true';
+  const [isEditing, setIsEditing] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [editedFarm, setEditedFarm] = useState<FarmDetails | null>(null);
+  const navigate = useNavigate();
+  const { t } = useLanguage();
+
+  // Simulate data loading
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      const farmData = id ? FARM_DETAILS[id] : null;
+      if (farmData) {
+        setEditedFarm({ ...farmData });
+      }
+      setIsLoading(false);
+    }, 100);
+
+    return () => clearTimeout(timer);
+  }, [id]);
+
+  const farm = id ? FARM_DETAILS[id] : null;
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    if (!editedFarm) return;
+    const { name, value } = e.target;
+    setEditedFarm({
+      ...editedFarm,
+      [name]: value
+    });
+  };
+
+  const handleSave = () => {
+    if (!editedFarm || !id) return;
+    // In a real app, you would make an API call here to save the changes
+    console.log('Saving farm data:', editedFarm);
+    // For demo purposes, we'll just update the local state
+    FARM_DETAILS[id] = editedFarm;
+    setIsEditing(false);
+  };
+
+  const handleCancel = () => {
+    if (farm) {
+      setEditedFarm({ ...farm });
+    }
+    setIsEditing(false);
+  };
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="animate-pulse text-center">
+          <div className="h-8 w-64 bg-gray-200 rounded-lg mx-auto mb-4"></div>
+          <div className="h-4 w-48 bg-gray-200 rounded mx-auto"></div>
+        </div>
+      </div>
+    );
+  }
+
+  // Not found state
+  if (!farm || !editedFarm) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-2xl font-semibold text-gray-800">Farm not found</h2>
+          <button 
+            onClick={() => navigate(isAdmin ? '/admin/farms' : '/nearby-farms')}
+            className="mt-4 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+          >
+            Back to {isAdmin ? 'Farm Management' : 'Farms'}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <header className="bg-purple-600 text-white">
+        <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <button 
+              onClick={() => navigate(-1)} 
+              className="p-2 rounded-lg bg-white/10 hover:bg-white/20" 
+              aria-label="Back"
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </button>
+            <h1 className="text-lg font-semibold">{farm.name}</h1>
+            {isAdmin && (
+              <span className="px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded-full flex items-center gap-1">
+                <ShieldAlert className="h-3 w-3" /> Admin View
+              </span>
+            )}
+          </div>
+        </div>
+      </header>
+
+      <main className="max-w-6xl mx-auto px-4 py-6 space-y-6">
+        {/* Farm Header */}
+        <section className="bg-white rounded-xl shadow-sm p-6 border">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div>
+              <div className="flex items-center gap-2 mb-2">
+                <h2 className="text-2xl font-bold text-gray-900">
+                  {isEditing ? (
+                    <input
+                      type="text"
+                      name="name"
+                      value={editedFarm.name}
+                      onChange={handleInputChange}
+                      className="border rounded px-2 py-1 w-full"
+                    />
+                  ) : (
+                    farm.name
+                  )}
+                </h2>
+                {isEditing ? (
+                  <select
+                    name="status"
+                    value={editedFarm.status}
+                    onChange={handleInputChange}
+                    className="text-xs px-2 py-1 rounded-full border"
+                  >
+                    <option value="Healthy">Healthy</option>
+                    <option value="Caution">Caution</option>
+                  </select>
+                ) : (
+                  <span className={`text-xs px-2 py-1 rounded-full ${farm.status === 'Healthy' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
+                    {farm.status === 'Healthy' ? 'Healthy' : 'Caution'}
+                  </span>
+                )}
+              </div>
+              <div className="flex items-center text-gray-600">
+                <MapPin className="h-4 w-4 mr-1 flex-shrink-0" />
+                {isEditing ? (
+                  <input
+                    type="text"
+                    name="location"
+                    value={editedFarm.location}
+                    onChange={handleInputChange}
+                    className="border rounded px-2 py-1 w-full"
+                  />
+                ) : (
+                  <span>{farm.location}</span>
+                )}
+              </div>
+              <div className="mt-2 flex items-center">
+                <Star className="h-4 w-4 text-yellow-500 mr-1" />
+                <span className="font-medium">{farm.rating}</span>
+                <span className="text-gray-500 ml-1">({Math.floor(Math.random() * 100) + 20} reviews)</span>
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            {isAdmin && (
+              <div className="flex flex-wrap gap-2">
+                {isEditing ? (
+                  <>
+                    <button 
+                      onClick={handleSave}
+                      className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center gap-2"
+                    >
+                      Save Changes
+                    </button>
+                    <button 
+                      onClick={handleCancel}
+                      className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 flex items-center gap-2"
+                    >
+                      Cancel
+                    </button>
+                  </>
+                ) : (
+                  <button 
+                    onClick={() => setIsEditing(true)}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2"
+                  >
+                    <Edit className="h-4 w-4" /> Edit Farm
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Farm Description */}
+          <div className="mt-6">
+            <h3 className="font-semibold text-gray-900 mb-2">About This Farm</h3>
+            {isEditing ? (
+              <textarea
+                name="description"
+                value={editedFarm.description}
+                onChange={handleInputChange}
+                className="w-full h-32 border rounded p-2"
+              />
+            ) : (
+              <p className="text-gray-600">{farm.description}</p>
+            )}
+          </div>
+
+          {/* Farm Details */}
+          <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <h3 className="font-semibold text-gray-900 mb-2">Farm Details</h3>
+              <div className="space-y-2">
+                <div className="flex justify-between">
+                  <span className="text-gray-500">Type:</span>
+                  {isEditing ? (
+                    <select
+                      name="type"
+                      value={editedFarm.type}
+                      onChange={handleInputChange}
+                      className="border rounded px-2 py-1"
+                    >
+                      <option value="Layer Chickens">Layer Chickens</option>
+                      <option value="Broiler Chickens">Broiler Chickens</option>
+                      <option value="Mixed Poultry">Mixed Poultry</option>
+                    </select>
+                  ) : (
+                    <span className="font-medium">{farm.type}</span>
+                  )}
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-500">Capacity:</span>
+                  {isEditing ? (
+                    <input
+                      type="number"
+                      name="capacity"
+                      value={editedFarm.capacity}
+                      onChange={handleInputChange}
+                      className="w-24 border rounded px-2 py-1"
+                    />
+                  ) : (
+                    <span className="font-medium">{farm.capacity} birds</span>
+                  )}
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-500">Established:</span>
+                  <span className="font-medium">{farm.established}</span>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <h3 className="font-semibold text-gray-900 mb-2">Contact Information</h3>
+              <div className="space-y-2">
+                <div className="flex justify-between">
+                  <span className="text-gray-500">Phone:</span>
+                  {isEditing ? (
+                    <input
+                      type="text"
+                      name="contact.phone"
+                      value={editedFarm.contact.phone}
+                      onChange={(e) => {
+                        if (!editedFarm) return;
+                        setEditedFarm({
+                          ...editedFarm,
+                          contact: {
+                            ...editedFarm.contact,
+                            phone: e.target.value
+                          }
+                        });
+                      }}
+                      className="border rounded px-2 py-1"
+                    />
+                  ) : (
+                    <span className="font-medium">{farm.contact.phone}</span>
+                  )}
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-500">Email:</span>
+                  {isEditing ? (
+                    <input
+                      type="email"
+                      name="contact.email"
+                      value={editedFarm.contact.email}
+                      onChange={(e) => {
+                        if (!editedFarm) return;
+                        setEditedFarm({
+                          ...editedFarm,
+                          contact: {
+                            ...editedFarm.contact,
+                            email: e.target.value
+                          }
+                        });
+                      }}
+                      className="border rounded px-2 py-1"
+                    />
+                  ) : (
+                    <span className="font-medium">{farm.contact.email}</span>
+                  )}
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-500">Website:</span>
+                  {isEditing ? (
+                    <input
+                      type="text"
+                      name="contact.website"
+                      value={editedFarm.contact.website}
+                      onChange={(e) => {
+                        if (!editedFarm) return;
+                        setEditedFarm({
+                          ...editedFarm,
+                          contact: {
+                            ...editedFarm.contact,
+                            website: e.target.value
+                          }
+                        });
+                      }}
+                      className="border rounded px-2 py-1"
+                    />
+                  ) : (
+                    <a 
+                      href={`https://${farm.contact.website}`} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="text-blue-600 hover:underline"
+                    >
+                      {farm.contact.website}
+                    </a>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Facilities */}
+          <div className="mt-6">
+            <h3 className="font-semibold text-gray-900 mb-2">Facilities</h3>
+            <div className="flex flex-wrap gap-2">
+              {farm.facilities.map((facility, index) => (
+                <span key={index} className="bg-gray-100 text-gray-800 text-sm px-3 py-1 rounded-full">
+                  {facility}
+                </span>
+              ))}
+            </div>
+          </div>
+
+          {/* Certifications */}
+          <div className="mt-6">
+            <h3 className="font-semibold text-gray-900 mb-2">Certifications</h3>
+            <div className="flex flex-wrap gap-2">
+              {farm.certifications.map((cert, index) => (
+                <span key={index} className="bg-green-100 text-green-800 text-sm px-3 py-1 rounded-full">
+                  {cert}
+                </span>
+              ))}
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+  );
+};
+
+export default FarmDetails;
