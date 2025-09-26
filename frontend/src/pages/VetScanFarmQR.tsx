@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Camera, RefreshCw, QrCode, ArrowLeft } from 'lucide-react';
-import LanguageSelector from '../components/LanguageSelector';
 import VetFooter from '../components/VetFooter';
 
 const hasBarcodeDetector = () => {

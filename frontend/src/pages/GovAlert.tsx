@@ -1,5 +1,5 @@
 import React from 'react';
-import { AlertTriangle, MapPin, Clock, Eye, ExternalLink } from 'lucide-react';
+import { AlertTriangle, MapPin, Eye } from 'lucide-react';
 
 const GovAlert: React.FC = () => {
   return (

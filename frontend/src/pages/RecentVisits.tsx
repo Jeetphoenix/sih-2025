@@ -72,7 +72,7 @@ const RecentVisits: React.FC = () => {
           <p className="text-sm text-gray-500 mb-4">{t('yourVisitHistory')}</p>
 
           <div className="space-y-4">
-            {visits.map((v, index) => (
+            {visits.map((v, _) => (
               <div key={v.id} className={`border rounded-lg overflow-hidden ${v.isRecent ? 'border-purple-300 bg-purple-50' : 'bg-gray-50'}`}>
                 <div className="flex items-center justify-between p-4">
                   <div>
